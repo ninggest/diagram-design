@@ -17,7 +17,7 @@ Use it from an **editable clone** (this checkout). Managed marketplace installs 
 | Choose type / pattern / size without rereading the whole skill | [R4](#r4-selection-cheat-sheet) |
 | Browse shipped examples | [R5](#r5-gallery-and-templates) |
 | Redraw draw.io or Mermaid | [R6](#r6-import) |
-| Hand off SVG or PNG | [R7](#r7-export) |
+| Hand off SVG, PNG or draw.io | [R7](#r7-export) |
 | Check a generated HTML file | [R8](#r8-taste-and-geometry-gates) |
 | Paste a request to an agent | [R9](#r9-prompt-pack) |
 
@@ -208,10 +208,12 @@ Extractors in this checkout: `skills/diagram-design/scripts/drawio_extract.py`, 
 
 - SVG: first `<svg>` only, XML-escaped Google Fonts `@import`, diagram-only (no full-page cards).
 - PNG: Playwright screenshot of that SVG box, transparent background. Motion HTML: `?motion=static`, wait for `document.fonts.ready`, `data-frame="static"`.
+- draw.io: a `.drawio` shape graph, diagram-only. Connectors are glued to the shapes they join, swimlane bands are containers, and a caption is a child of the step it captions. No Playwright needed; `--drawio` on its own produces only this file.
 
 ```
 /diagram-design:export-diagram path/to/diagram.html
 /diagram-design:export-diagram path/to/diagram.html --png-only --scale=2
+/diagram-design:export-diagram path/to/diagram.html --drawio
 ```
 
 ---

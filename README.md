@@ -19,7 +19,7 @@
 
 **[Website](https://diagramdesign.dev) · [Gallery](https://cathrynlavery.github.io/diagram-design/) · [Changelog](CHANGELOG.md)**
 
-[Install](#install) · [What it makes](#what-it-makes) · [Quickstart](#quickstart) · [Match your brand](#onboarding-make-it-look-like-your-brand) · [Import](#import-from-drawio-mermaid-or-excalidraw) · [Export](#export-to-png--svg) · [Contributing](#contributing)
+[Install](#install) · [What it makes](#what-it-makes) · [Quickstart](#quickstart) · [Match your brand](#onboarding-make-it-look-like-your-brand) · [Import](#import-from-drawio-mermaid-or-excalidraw) · [Export](#export-to-png--svg--drawio) · [Contributing](#contributing)
 
 <code>npx skills add cathrynlavery/diagram-design</code>
 
@@ -225,11 +225,11 @@ The shared skill lives at `skills/diagram-design/`. Pi discovers it through the 
 | You make it by | Writing text | Dragging shapes by hand | Describing it to your agent |
 | Layout | Automatic | Manual | Placed by the agent on a 4px grid, with CI checks for overlaps and clipping |
 | Look | The renderer's theme | Whatever you draw | One opinionated editorial style, matched to your brand |
-| Output | Text that renders on GitHub | An editable `.drawio` or `.excalidraw` file | One HTML file with inline SVG, exportable to SVG or PNG |
-| Change it later | Edit the text | Edit the canvas | Ask the agent again, or edit the SVG |
+| Output | Text that renders on GitHub | An editable `.drawio` or `.excalidraw` file | One HTML file with inline SVG, exportable to SVG, PNG or draw.io |
+| Change it later | Edit the text | Edit the canvas | Ask the agent again, edit the SVG, or export to draw.io and drag the boxes |
 | Existing diagrams | | | Redraws Mermaid, draw.io and Excalidraw files |
 
-The downsides are real. Output quality depends on the model you run it with, and the same prompt can lay out differently twice. The result is not an editable source format: there is no text to diff in a pull request and no canvas to drag a box on. For docs that live in Git and change every sprint, Mermaid is still the better fit. Diagram Design is for the diagram you are going to publish.
+The downsides are real. Output quality depends on the model you run it with, and the same prompt can lay out differently twice. The result is not an editable source format: there is no text to diff in a pull request. For docs that live in Git and change every sprint, Mermaid is still the better fit. Diagram Design is for the diagram you are going to publish. If you do want a canvas to drag boxes on, export to `.drawio` — but that file is a derivative of the HTML, not the thing you version.
 
 ---
 
@@ -482,9 +482,9 @@ What never carries over: source or renderer coordinates, source palette, source 
 
 ---
 
-## Export to PNG / SVG
+## Export to PNG / SVG / draw.io
 
-Diagrams ship as self-contained HTML, but you can export the diagram itself for Figma, slides, or social cards. SVG export also carries CDATA-wrapped diagram CSS, including selectors bound to the original SVG root, and preserves quoted selector values containing comment delimiters. Use the slash command for your agent:
+Diagrams ship as self-contained HTML, but you can export the diagram itself for Figma, slides, social cards, or a canvas you can restructure by hand. SVG export also carries CDATA-wrapped diagram CSS, including selectors bound to the original SVG root, and preserves quoted selector values containing comment delimiters. Use the slash command for your agent:
 
 **Pi:**
 
@@ -492,6 +492,7 @@ Diagrams ship as self-contained HTML, but you can export the diagram itself for 
 /export-diagram path/to/diagram.html
 /export-diagram path/to/diagram.html --svg-only
 /export-diagram path/to/diagram.html --png-only --scale=3
+/export-diagram path/to/diagram.html --drawio
 /export-diagram path/to/diagram.html --registry
 ```
 
@@ -501,6 +502,7 @@ Diagrams ship as self-contained HTML, but you can export the diagram itself for 
 /diagram-design:export-diagram path/to/diagram.html
 /diagram-design:export-diagram path/to/diagram.html --svg-only
 /diagram-design:export-diagram path/to/diagram.html --png-only --scale=3
+/diagram-design:export-diagram path/to/diagram.html --drawio
 /diagram-design:export-diagram path/to/diagram.html --registry
 ```
 
@@ -509,12 +511,14 @@ Or just ask in natural language:
 ```
 "Export this diagram as SVG and PNG."
 "Save my-diagram.html as PNG."
+"Give me an editable draw.io file I can rearrange."
 ```
 
 - **SVG** extracts the `<svg>` node and injects Google Fonts so it renders standalone in browsers, Figma, and Illustrator. Animation bindings follow namespaced keyframes even when property names use CSS escapes. Pass `--system-fonts` to skip the font import for offline use.
 - **PNG** rasterizes the diagram via Playwright at 2× by default. One-time setup: `pip install playwright && playwright install chromium`.
+- **draw.io** writes a `.drawio` file — mxGraph XML that opens in draw.io as a live shape graph rather than a picture. SVG records geometry but not relationships: a path knows it was drawn from A's right edge to B's bottom edge, not that A is the source and B the target. The exporter rebuilds that layer from the geometry this skill guarantees (a connector's endpoints sit on the shapes they join), so connectors stay glued to their shapes when you drag them, swimlane bands become containers whose steps move with them, and a caption travels with the step it captions. Given `--drawio` on its own it is the only output; add `--svg-only` or `--png-only` for an image as well. Needs no Playwright.
 
-Both formats are diagram-only: editorial cards and headers from `-full` variants aren't included. For a screenshot of the full editorial layout, use your browser's print-to-PDF or full-page screenshot. See [`skills/diagram-design/references/export.md`](skills/diagram-design/references/export.md) for the full procedure.
+All three formats are diagram-only: editorial cards and headers from `-full` variants aren't included. For a screenshot of the full editorial layout, use your browser's print-to-PDF or full-page screenshot. See [`skills/diagram-design/references/export.md`](skills/diagram-design/references/export.md) for the full procedure.
 
 - **`--registry`**: for diagrams using the [traceable block decomposition](skills/diagram-design/references/semantic-patterns.md) pattern, also emits `<basename>.registry.json`, a structured projection of every block's `data-block-*` metadata. Combine with either raster format or run alone. See [`skills/diagram-design/references/export-registry.md`](skills/diagram-design/references/export-registry.md).
 
