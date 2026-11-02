@@ -132,6 +132,7 @@ REQUIRED_PACKAGED_RUNTIME_FILES = frozenset(
         "scripts/excalidraw_extract.py",
         "scripts/export_svg.py",
         "scripts/export_png.py",
+        "scripts/export_drawio.py",
         "assets/template.html",
         "assets/template-dark.html",
         "assets/template-full.html",

@@ -464,7 +464,7 @@ The point isn't conversion, it's **fitting the output to where it's going**. Sam
 
 | Dial | Options | What it changes |
 |---|---|---|
-| **Format** | `html` · `svg` · `png` · `html+png` | The deliverable. SVG for Figma, PNG for slides, HTML for the web. |
+| **Format** | `html` · `svg` · `png` · `drawio` · `html+png` | The deliverable. SVG for Figma, PNG for slides, draw.io for editing, HTML for the web. |
 | **Size** | `doc-inline` · `doc-wide` · `slide-16x9` · `slide-4x3` · `social-og` · `social-square` · `print-a4-landscape` · `print-a3-landscape` · `print-letter-landscape` · `fit` | The `viewBox` **and the type ramp**: a projected slide gets 16px node names, not 12px. |
 | **Detail** | `faithful` (≤24 nodes, zoned) · `balanced` (≤12) · `simplified` (≤7) | How much of the source survives, via a fixed degrade ladder: decorations, then duplicates, then leaf clusters, then infrastructure. |
 | **Audience** | `engineer` · `mixed` · `executive` | The *wording*, not the count. `Auth Service / JWT · RS256 · :8443` → `Auth Service / token check` → `Sign-in`. |
@@ -619,6 +619,7 @@ diagram-design/
 │       │   ├── excalidraw_extract.py  # Excalidraw → structured IR
 │       │   ├── export_svg.py         # standalone SVG export
 │       │   ├── export_png.py         # Playwright PNG renderer
+│       │   ├── export_drawio.py      # draw.io export (shape graph, glued connectors)
 │       │   └── self_check.py         # packaged output self-check (runs installed)
 │       └── assets/
 │           ├── index.html            # live gallery, tabbed

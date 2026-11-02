@@ -352,6 +352,51 @@ A 960-wide `viewBox` at a 1200px target is `scale=1.25`. Two rules:
 
 If the target aspect ratio doesn't match the `viewBox` aspect ratio, say so and offer to redraw at the matching preset. Padding or cropping a finished diagram to fit a frame is not an export operation — it breaks the 40px safe margin.
 
+## draw.io export procedure
+
+Convert a generated diagram — its HTML or an already-exported SVG — into an editable `.drawio` file: mxGraph XML that draw.io opens as a live shape graph.
+
+**Manual only — never run unprompted.** The user asks for a diagram they can restructure.
+
+### Scope
+
+The `.drawio` file is the **diagram only**, like the SVG and PNG exports: the editorial wrapper (header, summary cards, footer) is dropped. What it adds over the SVG is the layer SVG cannot carry — a shape graph with glued connectors — so the result can be restructured in draw.io instead of only restyled.
+
+### What the helper reconstructs
+
+SVG records geometry, not semantics. A `<path>` knows it was drawn from A's right edge to B's bottom edge, but not that A is the source and B the target, nor which shapes belong together. draw.io needs exactly that missing layer, so a plain SVG round-trip degrades into loose shapes and dead lines.
+
+The helper recovers it from a contract this skill guarantees — every connector starts on the source shape's border and ends on the target shape's border — by matching the path's first and last point against the node rectangles. That yields the source and target cells and the attach fractions (`exitX`/`exitY`, `entryX`/`entryY`) that make a connector follow its shapes when they move.
+
+The same pass yields these mappings:
+
+| Diagram element | `.drawio` result |
+|---|---|
+| A step box (rounded rect) | A vertex whose label keeps the two-level hierarchy: the name bold, the sub-label mono and smaller |
+| A swimlane band (a full-width rule) | A container; the steps inside become its children, and the role name becomes the container's own label |
+| A caption beside or above a step | A child of that step, so it travels with it instead of stranding when the step is dragged |
+| A filled band (a Sankey ribbon) | A polygon vertex carrying `polyCoords` — a real shape, not a picture |
+| A legend key or a divider rule | Decoration: an edge or a small rectangle with no source and no target |
+
+A caption sitting in the gutter between two steps belongs to the **lower** one: this skill's convention places a gutter label above its own bar.
+
+### Procedure
+
+Run the packaged helper:
+
+```
+python3 skills/diagram-design/scripts/export_drawio.py <html-file> [<out.drawio>]
+```
+
+It takes the HTML source or an exported `.svg`, needs no third-party package, and writes `<basename>.drawio` next to the source when no output path is given. It prints a one-line summary of what it produced.
+
+### Caveats to surface to the user
+
+- **Fonts are not embedded.** draw.io renders with its own default faces, so the typography differs from the HTML version and a CJK diagram falls back to the system face.
+- **Rounded corners are approximated** by `arcSize`, a percentage of the shorter side, because that is draw.io's model.
+- **Ribbon edges are polylines.** The curves are flattened, so a band keeps its shape but its edge is a chord approximation.
+- **Data figures stay awkward.** A value bar and the ribbon around it are separate shapes with no relation between them, so dragging one detaches it from the other. For a chart, the SVG or a design tool remains the better editing surface; `.drawio` earns its place for process, architecture and swimlane diagrams.
+
 ## Edge cases
 
 - **Source is `assets/index.html`** (the gallery, multiple SVGs in one file): refuse the export and ask the user which specific diagram file they meant. Don't guess.
@@ -363,7 +408,7 @@ If the target aspect ratio doesn't match the `viewBox` aspect ratio, say so and 
 
 - Modifies the source HTML.
 - Adds export buttons or `<script>` tags. Static diagrams remain script-free; an already motion-enabled source may retain the scoped controller from [`animation.md`](animation.md), but export never injects another controller.
-- Auto-emits `.svg` or `.png` alongside HTML generation. Manual on every call.
+- Auto-emits `.svg`, `.png` or `.drawio` alongside HTML generation. Manual on every call.
 - Embeds an HTML wrapper (cards, headers) into the SVG via `foreignObject`. Too fragile across renderers.
 
 The exporter preserves `@font-face` and scopes ordinary rules within block at-rules such as `@supports`, `@media`, `@layer`, and `@container` without flattening their conditions. Groups containing only keyframes or font faces are also retained, including nested groups, so references outside the group keep their definitions. Declaration-only unsupported blocks are dropped with a warning rather than aborting the export. System-font mode continues to omit custom font-face declarations. Semicolons inside parenthesized CSS functions, including unquoted data URLs, remain value text instead of ending a statement.
